@@ -13,7 +13,7 @@ import torchvision
 import random
 import torchvision.transforms as transforms
 from PIL import Image
-from mytools.utils import get_frames, do_inference, load_engine, allocate_buffers
+from mytools.utils import get_frames, do_inference, load_engine, allocate_buffers, allocate_buffers1, do_inference1
 import tensorrt as trt
 
 
@@ -71,34 +71,35 @@ class CameraProcess(Process):
 class ModelProcess(Process):
     def __init__(self, xname, pipe,
                  slowfast_path="../engines/slowfast_rgb1.plan",
-                 mobilenet_path="../engines/mobileNetv2.plan",
+                 mobilenetv2_path="../engines/mobileNetv2.plan",
                  priority_queue=None, cfg=None, debug=False):
         super().__init__()
-
         self.xname = xname
         self.pipe = pipe
         self.priority_queue = priority_queue
         self.cfg = cfg
         self.slowfast_path = slowfast_path
-        self.mobilenet_path = mobilenet_path
+        self.mobilenetv2_path = mobilenetv2_path
         self.mode = 'test'
         self.debug = debug
+        self.timeframe = None
+        self.q = None
 
         print("model ready!")
         self.model_ready = True
 
     def run(self):
         TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
-
         trt_runtime = trt.Runtime(TRT_LOGGER)
         slowfast_model = load_engine(trt_runtime=trt_runtime, plan_path=self.slowfast_path)
-
+        mobilenetv2_model = load_engine(trt_runtime=trt_runtime, plan_path=self.mobilenetv2_path)
         batch_size = 1
         maxsize = 100
+
         self.timeframe = []
         self.q = []
-        while True:
 
+        while True:
             while len(self.timeframe) > 0 and time.time() - self.timeframe[0] > 3:
                 self.timeframe.pop(0)
                 self.q.pop(0)
@@ -108,15 +109,20 @@ class ModelProcess(Process):
                 self.timeframe.append(timeframe)
                 self.q.append(q)
 
-            inputs = get_frames(self.cfg, self.q)
-            h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream = allocate_buffers(slowfast_model, batch_size, trt.float32)
-            out = do_inference(slowfast_model, inputs, h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream)
-            dataframe = time.time()
-            classes = np.argmax(out)
-            print("{}, predicts: {}".format(dataframe, classes))
-            if self.debug:
-                a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
-                torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
+            h_input1, d_input1, h_output, d_output, stream = allocate_buffers1(mobilenetv2_model, batch_size, trt.float32)
+            out = do_inference1(mobilenetv2_model, self.q[0], h_input1, d_input1, h_output, d_output, stream)
+            isStart = np.argmax(out)  # 1: active
+
+            if isStart:
+                inputs = get_frames(self.cfg, self.q)
+                h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream = allocate_buffers(slowfast_model, batch_size, trt.float32)
+                out = do_inference(slowfast_model, inputs, h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream)
+                dataframe = time.time()
+                classes = np.argmax(out)
+                print("{}, predicts: {}".format(dataframe, classes))
+                if self.debug:
+                    a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
+                    torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
 
 
 def mytest_trt(cfg):
