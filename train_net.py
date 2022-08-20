@@ -140,7 +140,7 @@ def train_epoch(
                 # Compute the predictions.
                 preds = model(inputs, meta["boxes"])
             else:
-                preds = model(inputs[0], inputs[1])
+                preds = model(inputs)
         if cfg.TASK == "ssl" and cfg.MODEL.MODEL_NAME == "ContrastiveModel":
             labels = torch.zeros(
                 preds.size(0), dtype=labels.dtype, device=labels.device
@@ -354,7 +354,7 @@ def eval_epoch(
                 )
                 preds = torch.sum(probs, 1)
             else:
-                preds = model(inputs[0], inputs[1])
+                preds = model(inputs)
 
             if cfg.DATA.MULTI_LABEL:
                 if cfg.NUM_GPUS > 1:

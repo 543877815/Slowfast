@@ -53,7 +53,7 @@ SOLVER:
   WARMUP_START_LR: 0.0001
   OPTIMIZING_METHOD: sgd
 MODEL:
-  NUM_CLASSES: 174  # 12 is enough
+  NUM_CLASSES: 13  # 13 is enough
   ARCH: slowfast
   LOSS_FUNC: cross_entropy
   DROPOUT_RATE: 0.5
@@ -63,7 +63,7 @@ TEST:
   BATCH_SIZE: 8
   NUM_ENSEMBLE_VIEWS: 1
   NUM_SPATIAL_CROPS: 1
-  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_01200.pyth"
+  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00760.pyth"
 DATA_LOADER:
   NUM_WORKERS: 4
   PIN_MEMORY: True

@@ -9,11 +9,11 @@ from collections import defaultdict
 import cv2
 import torch
 from torch.utils.data.distributed import DistributedSampler
-
+import matplotlib.pyplot as plt
 from slowfast.utils.env import pathmgr
 
 from . import transform as transform
-
+import PIL.Image as Image
 logger = logging.getLogger(__name__)
 
 
@@ -32,14 +32,19 @@ def retry_load_images(image_paths, retry=10, backend="pytorch"):
     for i in range(retry):
         imgs = []
         for image_path in image_paths:
-            with pathmgr.open(image_path, "rb") as f:
-                img_str = np.frombuffer(f.read(), np.uint8)
-                img = cv2.imdecode(img_str, flags=cv2.IMREAD_COLOR)
+            if isinstance(image_path, str):
+                img = Image.open(image_path)
+            else:
+                img = Image.fromarray(image_path)
             imgs.append(img)
+            # with pathmgr.open(image_path, "rb") as f:
+            #     img_str = np.frombuffer(f.read(), np.uint8)
+            #     img = cv2.imdecode(img_str, flags=cv2.IMREAD_COLOR)
+            # imgs.append(img)
 
         if all(img is not None for img in imgs):
-            if backend == "pytorch":
-                imgs = torch.as_tensor(np.stack(imgs))
+            # if backend == "pytorch":
+            #     imgs = torch.as_tensor(np.stack(imgs))
             return imgs
         else:
             logger.warn("Reading failed. Will retry.")
@@ -290,8 +295,8 @@ def tensor_normalize(tensor, mean, std, func=None):
         std = torch.tensor(std)
     if func is not None:
         tensor = func(tensor)
-    tensor = tensor - mean
-    tensor = tensor / std
+    # tensor = tensor - mean
+    # tensor = tensor / std
     return tensor
 
 

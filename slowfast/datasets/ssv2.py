@@ -8,12 +8,13 @@ import random
 from itertools import chain as chain
 import torch
 import torch.utils.data
-
+import time
 import slowfast.utils.logging as logging
 from slowfast.utils.env import pathmgr
-
+import torchvision.transforms as transforms
 from . import utils as utils
 from .build import DATASET_REGISTRY
+from PIL import Image
 
 logger = logging.get_logger(__name__)
 
@@ -64,7 +65,7 @@ class Ssv2(torch.utils.data.Dataset):
             self._num_clips = 1
         elif self.mode in ["test"]:
             self._num_clips = (
-                cfg.TEST.NUM_ENSEMBLE_VIEWS * cfg.TEST.NUM_SPATIAL_CROPS
+                    cfg.TEST.NUM_ENSEMBLE_VIEWS * cfg.TEST.NUM_SPATIAL_CROPS
             )
 
         logger.info("Constructing Something-Something V2 {}...".format(mode))
@@ -76,11 +77,11 @@ class Ssv2(torch.utils.data.Dataset):
         """
         # Loading label names.
         with pathmgr.open(
-            os.path.join(
-                self.cfg.DATA.PATH_TO_DATA_DIR,
-                "something-something-v2-labels.json",
-            ),
-            "r",
+                os.path.join(
+                    self.cfg.DATA.PATH_TO_DATA_DIR,
+                    "something-something-v2-labels.json",
+                ),
+                "r",
         ) as f:
             label_dict = json.load(f)
 
@@ -226,8 +227,8 @@ class Ssv2(torch.utils.data.Dataset):
             # center, or right if width is larger than height, and top, middle,
             # or bottom if height is larger than width.
             spatial_sample_index = (
-                self._spatial_temporal_idx[index]
-                % self.cfg.TEST.NUM_SPATIAL_CROPS
+                    self._spatial_temporal_idx[index]
+                    % self.cfg.TEST.NUM_SPATIAL_CROPS
             )
             min_scale, max_scale, crop_size = [self.cfg.DATA.TEST_CROP_SIZE] * 3
             # The testing is deterministic and no jitter should be performed.
@@ -242,20 +243,14 @@ class Ssv2(torch.utils.data.Dataset):
 
         seq = self.get_seq_frames(index)
 
-        frames = torch.as_tensor(
-            utils.retry_load_images(
-                [self._path_to_videos[index][frame] for frame in seq],
-                self._num_retries,
-            )
+        frames_PIL = self.retry_load_images(
+            [self._path_to_videos[index][frame] for frame in seq],
+            self._num_retries,
         )
 
-        # Perform color normalization.
-        frames = utils.tensor_normalize(
-            frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
-        )
+        frames_PIL = self.video_aug(frames_PIL)
+        frames = torch.stack(frames_PIL, dim=1)
 
-        # T H W C -> C T H W.
-        frames = frames.permute(3, 0, 1, 2)
         # Perform data augmentation.
         frames = utils.spatial_sampling(
             frames,
@@ -268,6 +263,71 @@ class Ssv2(torch.utils.data.Dataset):
         )
         frames = utils.pack_pathway_output(self.cfg, frames)
         return frames, label, index, 0, {}
+
+    def video_aug(self, frame):
+        import augly.image as imaugs
+        COLOR_JITTER_PARAMS = {
+            "brightness_factor": random.uniform(0.8, 1.4),
+            "contrast_factor": random.uniform(0.8, 1.4),
+            "saturation_factor": random.uniform(0.8, 1.4),
+        }
+
+        DEGRADATION_PARAMS = {
+            "jpeg_factor": random.randint(0, 30),
+            "blur_radius": random.uniform(0, 2.0),
+            "noise_variance": random.uniform(0, 1.0),
+            "sharpen_factor": random.uniform(1, 1.2)
+        }
+
+        degradation_type = random.randint(0, 3)
+
+        TENSOR_TRANSFORMS = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Normalize(mean=[0.504, 0.511, 0.486], std=[0.300, 0.291, 0.286])])
+
+        for i in range(len(frame)):
+            if self.mode in ['train']:
+                # if degradation_type == 0:
+                #     frame[i] = imaugs.encoding_quality(frame[i], quality=DEGRADATION_PARAMS['jpeg_factor'])
+                # elif degradation_type == 1:
+                #     frame[i] = imaugs.blur(frame[i], radius=DEGRADATION_PARAMS['blur_radius'])
+                # elif degradation_type == 2:
+                # frame[i] = imaugs.random_noise(frame[i], var=DEGRADATION_PARAMS['noise_variance'])
+                # elif degradation_type == 3:
+                #     frame[i] = imaugs.sharpen(frame[i], factor=DEGRADATION_PARAMS["sharpen_factor"])
+                frame[i] = imaugs.color_jitter(frame[i],
+                                               brightness_factor=COLOR_JITTER_PARAMS['brightness_factor'],
+                                               contrast_factor=COLOR_JITTER_PARAMS['contrast_factor'],
+                                               saturation_factor=COLOR_JITTER_PARAMS['saturation_factor'])
+            frame[i] = TENSOR_TRANSFORMS(frame[i])
+
+        return frame
+
+    def retry_load_images(self, image_paths, retry=10, backend="pytorch"):
+        """
+        This function is to load images with support of retrying for failed load.
+
+        Args:
+            image_paths (list): paths of images needed to be loaded.
+            retry (int, optional): maximum time of loading retrying. Defaults to 10.
+            backend (str): `pytorch` or `cv2`.
+
+        Returns:
+            imgs (list): list of loaded images.
+        """
+        for i in range(retry):
+            imgs = []
+            for image_path in image_paths:
+                img = Image.open(image_path)
+                imgs.append(img)
+
+            if all(img is not None for img in imgs):
+                return imgs
+            else:
+                logger.warn("Reading failed. Will retry.")
+                time.sleep(1.0)
+            if i == retry - 1:
+                raise Exception("Failed to load images {}".format(image_paths))
 
     def __len__(self):
         """

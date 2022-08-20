@@ -16,7 +16,8 @@ if __name__ == '__main__':
         "9": "Point thumb 15 degrees vertically to the down",
         "10": "Cross two index fingers facing the camera",
         "11": "Waving to the left",
-        "12": "Waving to the right"
+        "12": "Waving to the right",
+        "13": "Without action"
     }
     parser = argparse.ArgumentParser()
     parser.add_argument("--video_type", default="RGB")
@@ -30,7 +31,9 @@ if __name__ == '__main__':
         targetdir = f'/data/lifengjun/gesture_dataset/dataset/image/{args.video_type}/{mode}'
         res = []
         jsontext = []
-        for labels in os.listdir(targetdir):
+        targetdir_path = os.listdir(targetdir)
+        targetdirs = sorted(targetdir_path)
+        for labels in targetdirs:
             video_path = os.path.join(targetdir, labels)
             videos = sorted(os.listdir(video_path))
             for original_vido_id in videos:

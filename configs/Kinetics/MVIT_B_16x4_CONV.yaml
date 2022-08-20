@@ -38,7 +38,7 @@ MVIT:
   POOL_KV_STRIDE_ADAPTIVE: [1, 8, 8]
   POOL_Q_STRIDE: [[1, 1, 2, 2], [3, 1, 2, 2], [14, 1, 2, 2]]
   DROPOUT_RATE: 0.0
-AUG:
+c:
   NUM_SAMPLE: 2
   ENABLE: True
   COLOR_JITTER: 0.4

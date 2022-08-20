@@ -1,4 +1,5 @@
 import sys
+
 sys.path.insert(0, '../')
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
@@ -42,23 +43,6 @@ def generate_cm(cfg):
     # Build the video model and print model statistics.
     model = build_model(cfg)
 
-    # out_str_prefix = "lin" if cfg.MODEL.DETACH_FINAL_FC else ""
-
-    # if du.is_master_proc() and cfg.LOG_MODEL_INFO:
-    #     misc.log_model_info(model, cfg, use_train_input=False)
-
-    # if (
-    #         cfg.TASK == "ssl"
-    #         and cfg.MODEL.MODEL_NAME == "ContrastiveModel"
-    #         and cfg.CONTRASTIVE.KNN_ON
-    # ):
-    #     train_loader = loader.construct_loader(cfg, "train")
-    #     out_str_prefix = "knn"
-    #     if hasattr(model, "module"):
-    #         model.module.init_knn_labels(train_loader)
-    #     else:
-    #         model.init_knn_labels(train_loader)
-    #
     cu.load_test_checkpoint(cfg, model)
 
     # Create video testing loaders.
@@ -67,9 +51,9 @@ def generate_cm(cfg):
 
     assert (
             test_loader.dataset.num_videos
-            % (cfg.TEST.NUM_ENSEMBLE_VIEWS * cfg.TEST.NUM_SPATIAL_CROPS)
-            == 0
+            % (cfg.TEST.NUM_ENSEMBLE_VIEWS * cfg.TEST.NUM_SPATIAL_CROPS) == 0
     )
+
     # # Create meters for multi-view testing.
     # test_meter = TestMeter(
     #     test_loader.dataset.num_videos
@@ -86,10 +70,7 @@ def generate_cm(cfg):
     # writer = None
 
     model.eval()
-    # test_meter.iter_tic()
 
-    ## TODO: set a type number here
-    conf_maxtri = np.zeros([13, 13], dtype=int)
     y_pred = []
     y_true = []
     for cur_iter, (inputs, labels, video_idx, time, meta) in enumerate(
@@ -135,7 +116,7 @@ def generate_cm(cfg):
     total = len(y_true_np)
 
     print("correct rate: {}".format(correct / total))
-    C = confusion_matrix(y_true_np, y_pred_np, labels=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    C = confusion_matrix(y_true_np, y_pred_np, labels=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
     plt.matshow(C, cmap=plt.cm.Reds)  # 根据最下面的图按自己需求更改颜色
     for i in range(len(C)):
         for j in range(len(C)):

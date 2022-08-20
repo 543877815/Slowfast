@@ -1,11 +1,11 @@
 TRAIN:
-  ENABLE: True
+  ENABLE: False
   DATASET: ssv2
   BATCH_SIZE: 48   # 8 per gpu for 24G
   EVAL_PERIOD: 5
   CHECKPOINT_PERIOD: 5
   AUTO_RESUME: False
-  CHECKPOINT_FILE_PATH: ""  # please download from the model zoo. checkpoints/SLOWFAST_16x8_R50.pkl
+  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00730.pyth"  # please download from the model zoo. checkpoints/SLOWFAST_16x8_R50.pkl
   CHECKPOINT_TYPE: pytorch
 DATA:
   NUM_FRAMES: 64
@@ -40,7 +40,7 @@ BN:
   USE_PRECISE_STATS: True
   NUM_BATCHES_PRECISE: 200
   NORM_TYPE: sync_batchnorm
-  NUM_SYNC_DEVICES: 6
+  NUM_SYNC_DEVICES: 1
 SOLVER:
   BASE_LR: 0.005
   LR_POLICY: steps_with_relative_lrs
@@ -60,13 +60,14 @@ MODEL:
 TEST:
   ENABLE: True
   DATASET: ssv2
-  BATCH_SIZE: 8
+  BATCH_SIZE: 4
   NUM_ENSEMBLE_VIEWS: 1
   NUM_SPATIAL_CROPS: 1
+  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00600.pyth"
 DATA_LOADER:
   NUM_WORKERS: 4
   PIN_MEMORY: True
-NUM_GPUS: 6
+NUM_GPUS: 1
 NUM_SHARDS: 1
 RNG_SEED: 0
 OUTPUT_DIR: .

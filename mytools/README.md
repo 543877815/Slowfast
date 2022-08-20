@@ -158,6 +158,15 @@ source_path/1/100003.mp4 => train/1/100003.mp4
 source_path/1/100004.mp4 => val/1/100004.mp4
 ```
 
+## 计算数据集的统计值
+
+包括均值和方差，用来加速训练
+
+```
+python mytools/calc_statistics.py
+```
+
+
 ## 视频抽帧生成图片数据
 
 视频抽帧和生成注解的命令
