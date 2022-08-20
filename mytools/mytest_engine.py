@@ -171,39 +171,38 @@ if __name__ == "__main__":
     slowfast_path = "../engines/slowfast_rgb1.plan"
     slowfast_model = load_engine(trt_runtime, slowfast_path)
     batch_size = 1
-    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\13"
+    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\test"
     frames = os.listdir(frame_path)
     times = 1
     start_time = time.time()
-    # for i in tqdm(range(times)):
-    #     for path in frames:
-    #         img_path = os.path.join(frame_path, path)
-    #         path_to_videos = [os.path.join(img_path, img) for img in os.listdir(img_path)]
-    #         inputs = get_frames(cfg=cfg, path_to_videos=path_to_videos)
-    #
-    #         h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream = allocate_buffers(slowfast_model, batch_size, trt.float32)
-    #         out = do_inference(slowfast_model, inputs, h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream)
-    #
-    #         ### for debug
-    #         # a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
-    #         # dataframe = time.time()
-    #         # torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
-    #
-    #         classes = np.argmax(out)  # classes.shape = torch.Size([8])
-    #         print(classes)
-    #
-    # end_time = time.time()
-    # print(f"total: {end_time - start_time}, avg:{(end_time - start_time) / (len(frames) * times)}")
+    for i in tqdm(range(times)):
+        for path in frames:
+            img_path = os.path.join(frame_path, path)
+            path_to_videos = [os.path.join(img_path, img) for img in os.listdir(img_path)]
+            inputs = get_frames(cfg=cfg, path_to_videos=path_to_videos)
+
+            h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream = allocate_buffers(slowfast_model, batch_size, trt.float32)
+            out = do_inference(slowfast_model, inputs, h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream)
+
+            ### for debug
+            a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
+            dataframe = time.time()
+            classes = np.argmax(out)  # classes.shape = torch.Size([8])
+            torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
+            print(classes)
+
+    end_time = time.time()
+    print(f"total: {end_time - start_time}, avg:{(end_time - start_time) / (len(frames) * times)}")
 
 
     ## for mobileNetV2
-    mobilenet_path = "../engines/mobileNetv2.plan"
-    mobilenetv2_model = load_engine(trt_runtime, mobilenet_path)
-
-    image_dir = r"D:\jupyter\SlowFast\test_imgs\divide\0"
-    imgs = get_images(image_dir)
-    for img in imgs:
-        h_input1, d_input1, h_output, d_output, stream = allocate_buffers1(mobilenetv2_model, batch_size, trt.float32)
-        out = do_inference1(mobilenetv2_model, img, h_input1, d_input1, h_output, d_output, stream)
-        classes = np.argmax(out)
-        print(classes)
+    # mobilenet_path = "../engines/mobileNetv2.plan"
+    # mobilenetv2_model = load_engine(trt_runtime, mobilenet_path)
+    #
+    # image_dir = r"D:\jupyter\SlowFast\test_imgs\divide\0"
+    # imgs = get_images(image_dir)
+    # for img in imgs:
+    #     h_input1, d_input1, h_output, d_output, stream = allocate_buffers1(mobilenetv2_model, batch_size, trt.float32)
+    #     out = do_inference1(mobilenetv2_model, img, h_input1, d_input1, h_output, d_output, stream)
+    #     classes = np.argmax(out)
+    #     print(classes)

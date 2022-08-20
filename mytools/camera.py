@@ -1,21 +1,12 @@
 import cv2 as cv
-import sys
-import onnxruntime as ort
 from slowfast.utils.parser import load_config, parse_args
-from slowfast.utils.misc import launch_job
 from multiprocessing import Process, Pipe
-import datetime
-from slowfast.datasets import utils as utils
-import torch
 import numpy as np
 import time
-import torchvision
-import random
-import torchvision.transforms as transforms
-from PIL import Image
 from mytools.utils import get_frames, do_inference, load_engine, allocate_buffers, allocate_buffers1, do_inference1
 import tensorrt as trt
-
+import torchvision
+import torch
 
 class CameraProcess(Process):
     def __init__(self, xname, pipe):
@@ -32,7 +23,8 @@ class CameraProcess(Process):
         self.cap = cv.VideoCapture(0)
         print("camera ready!")
 
-        self.cap.set(cv.CAP_PROP_AUTO_WB, 0) # 白平衡
+        print(self.cap.set(cv.CAP_PROP_AUTO_WB, 0)) # 关闭白平衡，解决偏色问题
+        # print(self.cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 1)) #设置曝光为手动模式
         # self.cap.set(cv.CAP_PROP_FRAME_WIDTH, width)  # 设置宽度
         # self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)  # 设置长度
 
@@ -56,12 +48,12 @@ class CameraProcess(Process):
             if cv.waitKey(1) & 0xFF == ord('q'):  # 按q退出
                 break
 
+            cv.imwrite('./images/{}.png'.format(str(id).zfill(5)), frame)
+            id += 1
+
             timeframe = time.time()
             frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
             self.pipe.send([frame, timeframe])
-            # cv.imwrite('./images/{}.png'.format(str(id).zfill(5)), frame)
-            id += 1
-            # self.q.append(frame)
 
             # 监测键盘输入是否为q，为q则退出程序
             if cv.waitKey(1) & 0xFF == ord('q'):  # 按q退出
@@ -72,7 +64,7 @@ class ModelProcess(Process):
     def __init__(self, xname, pipe,
                  slowfast_path="../engines/slowfast_rgb1.plan",
                  mobilenetv2_path="../engines/mobileNetv2.plan",
-                 priority_queue=None, cfg=None, debug=False):
+                 priority_queue=None, cfg=None, debug=True):
         super().__init__()
         self.xname = xname
         self.pipe = pipe
@@ -89,32 +81,36 @@ class ModelProcess(Process):
         self.model_ready = True
 
     def run(self):
-        TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
+        TRT_LOGGER = trt.Logger(trt.Logger.ERROR)
         trt_runtime = trt.Runtime(TRT_LOGGER)
         slowfast_model = load_engine(trt_runtime=trt_runtime, plan_path=self.slowfast_path)
         mobilenetv2_model = load_engine(trt_runtime=trt_runtime, plan_path=self.mobilenetv2_path)
         batch_size = 1
-        maxsize = 100
+        maxsize = 108
 
         self.timeframe = []
         self.q = []
-
+        self.isStart = []
         while True:
             while len(self.timeframe) > 0 and time.time() - self.timeframe[0] > 3:
                 self.timeframe.pop(0)
                 self.q.pop(0)
+                self.isStart.pop(0)
 
             while len(self.timeframe) < maxsize:
                 q, timeframe = self.pipe.recv()
                 self.timeframe.append(timeframe)
                 self.q.append(q)
 
-            h_input1, d_input1, h_output, d_output, stream = allocate_buffers1(mobilenetv2_model, batch_size, trt.float32)
-            out = do_inference1(mobilenetv2_model, self.q[0], h_input1, d_input1, h_output, d_output, stream)
-            isStart = np.argmax(out)  # 1: active
+                h_input1, d_input1, h_output, d_output, stream = allocate_buffers1(mobilenetv2_model, batch_size, trt.float32)
+                out = do_inference1(mobilenetv2_model, q, h_input1, d_input1, h_output, d_output, stream)
+                self.isStart.append(np.argmax(out))   # 1: active
 
-            if isStart:
-                inputs = get_frames(self.cfg, self.q)
+            if self.isStart[0]:
+                inputs = get_frames(self.cfg, self.q[:80])
+                for i in range(64):
+                    self.isStart[i] = 0
+
                 h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream = allocate_buffers(slowfast_model, batch_size, trt.float32)
                 out = do_inference(slowfast_model, inputs, h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream)
                 dataframe = time.time()
@@ -123,6 +119,8 @@ class ModelProcess(Process):
                 if self.debug:
                     a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
                     torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
+
+
 
 
 def mytest_trt(cfg):
@@ -146,4 +144,5 @@ if __name__ == "__main__":
     print("config files: {}".format(args.cfg_files))
     for path_to_config in args.cfg_files:
         cfg = load_config(args, path_to_config)
-    launch_job(cfg=cfg, init_method=args.init_method, func=mytest_trt)
+    mytest_trt(cfg=cfg)
+    # launch_job(cfg=cfg, init_method=args.init_method, func=mytest_trt)

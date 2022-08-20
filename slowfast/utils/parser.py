@@ -6,8 +6,8 @@
 import argparse
 import sys
 
-import slowfast.utils.checkpoint as cu
 from slowfast.config.defaults import get_cfg
+
 
 
 def parse_args():
@@ -90,5 +90,4 @@ def load_config(args, path_to_config=None):
         cfg.OUTPUT_DIR = args.output_dir
 
     # Create the checkpoint dir.
-    cu.make_checkpoint_dir(cfg.OUTPUT_DIR)
     return cfg

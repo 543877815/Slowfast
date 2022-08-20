@@ -221,6 +221,8 @@ def retry_load_images(image_paths, retry=10, backend="pytorch"):
 def video_aug(frame):
     TENSOR_TRANSFORMS = transforms.Compose(
         [transforms.ToTensor(),
+         # transforms.Normalize(mean=[0.615, 0.613, 0.640],
+         #                      std=[0.265, 0.264, 0.253])
          transforms.Normalize(mean=[0.504, 0.511, 0.486],
                               std=[0.300, 0.291, 0.286]),
          ])
@@ -236,6 +238,8 @@ def get_images(image_dir):
     transform = transforms.Compose([
         transforms.transforms.Resize([WIDTH, HEIGHT]),
         transforms.ToTensor(),
+        # transforms.Normalize(mean=[0.615, 0.613, 0.640],
+        #                      std=[0.265, 0.264, 0.253])
         transforms.Normalize(mean=[0.504, 0.511, 0.486],
                              std=[0.300, 0.291, 0.286]),
     ])

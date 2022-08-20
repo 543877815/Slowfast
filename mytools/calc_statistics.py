@@ -2,7 +2,8 @@ import numpy as np
 import cv2
 import os
 from tqdm import tqdm
-if __name__ == "__main__":
+
+def a():
     img_h, img_w = 256, 256  # 根据自己数据集适当调整，影响不大
     means, stdevs = [], []
     img_list = []
@@ -23,6 +24,37 @@ if __name__ == "__main__":
                 img = img[:, :, :, np.newaxis]
                 img_list.append(img)
                 i += 1
+
+    imgs = np.concatenate(img_list, axis=3)
+    imgs = imgs.astype(np.float32) / 255.
+
+    for i in range(3):
+        pixels = imgs[:, :, i, :].ravel()  # 拉成一行
+        means.append(np.mean(pixels))
+        stdevs.append(np.std(pixels))
+
+    # BGR --> RGB ， CV读取的需要转换，PIL读取的不用转换
+    means.reverse()
+    stdevs.reverse()
+
+    print("normMean = {}".format(means))
+    print("normStd = {}".format(stdevs))
+
+
+if __name__ == "__main__":
+    img_h, img_w = 256, 256  # 根据自己数据集适当调整，影响不大
+    means, stdevs = [], []
+    img_list = []
+    cls = 1
+    i = 0
+    img_path = "D:\jupyter\SlowFast\mytools\images"
+    for frame in tqdm(os.listdir(img_path)):
+        imgs_path = os.path.join(img_path, frame)
+        img = cv2.imread(imgs_path)
+        img = cv2.resize(img, (img_w, img_h))
+        img = img[:, :, :, np.newaxis]
+        img_list.append(img)
+        i += 1
 
     imgs = np.concatenate(img_list, axis=3)
     imgs = imgs.astype(np.float32) / 255.
