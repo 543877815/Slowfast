@@ -258,3 +258,27 @@ python mytools/generate_onnx.py
 ```
 python mytools/mytest_onnx.py
 ```
+
+# tensorrt
+
+安装
+
+- windows需要到官网下载cuDNN对应版本的tensorrt，然后把`bin`，`lib`，`include`目录合并拷贝到`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4`中
+
+- linux上通过以下命令安装
+
+```
+pip install nvidia-tensorrt
+```
+
+## 生成tensorrt
+
+```
+python mytools/generate_engine.py
+```
+
+## 使用onnx
+
+```
+python mytools/mytest_engine.py
+```
