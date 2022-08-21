@@ -8,13 +8,11 @@ import torch
 import matplotlib.pyplot as plt
 
 logger = logging.get_logger(__name__)
-
 import tensorrt as trt
 import pycuda.driver as cuda
 import pycuda.autoinit
 import numpy as np
 import os
-from mytools.utils import *
 from slowfast.utils.parser import load_config, parse_args
 from tqdm import tqdm
 
@@ -219,14 +217,18 @@ def retry_load_images(image_paths, retry=10, backend="pytorch"):
 
 # 视频增强
 def video_aug(frame):
+    # pip uninstall python-magic
+    # pip install python-magic-bin==0.4.14
+    import augly.image as imaugs
     TENSOR_TRANSFORMS = transforms.Compose(
         [transforms.ToTensor(),
          # transforms.Normalize(mean=[0.615, 0.613, 0.640],
          #                      std=[0.265, 0.264, 0.253])
-         transforms.Normalize(mean=[0.504, 0.511, 0.486],
-                              std=[0.300, 0.291, 0.286]),
+         # transforms.Normalize(mean=[0.504, 0.511, 0.486],
+         #                      std=[0.300, 0.291, 0.286]),
          ])
     for i in range(len(frame)):
+        frame[i] = imaugs.grayscale(frame[i])
         frame[i] = TENSOR_TRANSFORMS(frame[i])
 
     return frame

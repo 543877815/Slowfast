@@ -27,7 +27,7 @@ def generate_onnx(cfg):
               torch.randn(batch_size, img_channel, slow_frame, img_width, img_height, device="cuda")]
     input_names = ["x0", "x1", "bboxes"]
     output_names = ["output"]
-    saved_name = "../onnxes/slowfast_rgb1.onnx"
+    saved_name = "../onnxes/slowfast_rgb2.onnx"
 
     torch.onnx.export(model, args=(inputs[0], inputs[1], None), f=saved_name, verbose=True, input_names=input_names, output_names=output_names)
     print("finish exporting slowfast onnx")

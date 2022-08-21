@@ -10,7 +10,7 @@ import torch
 import time
 import slowfast.utils.logging as logging
 from slowfast.datasets import utils as utils
-from mytools.utils import *
+from mytools.jinyang.utils import *
 import PIL.Image as Image
 from tqdm import tqdm
 logger = logging.get_logger(__name__)

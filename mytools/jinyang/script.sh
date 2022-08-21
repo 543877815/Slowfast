@@ -11,4 +11,4 @@ CUDA_VISIBLE_DEVICES=2,3  python -m torch.distributed.launch --nproc_per_node=2 
   NUM_GPUS 2 \
   TRAIN.BATCH_SIZE 16
 
-CUDA_VISIBLE_DEVICES=2,3,4,5,6,7  python run_net.py  --cfg configs/SSv2/SLOWFAST_16x8_R50.yaml
+CUDA_VISIBLE_DEVICES=0,1,2,3  python run_net.py  --cfg configs/SSv2/SLOWFAST_16x8_R50.yaml

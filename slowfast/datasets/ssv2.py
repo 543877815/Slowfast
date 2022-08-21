@@ -283,7 +283,8 @@ class Ssv2(torch.utils.data.Dataset):
 
         TENSOR_TRANSFORMS = transforms.Compose(
             [transforms.ToTensor(),
-             transforms.Normalize(mean=[0.504, 0.511, 0.486], std=[0.300, 0.291, 0.286])])
+             # transforms.Normalize(mean=[0.504, 0.511, 0.486], std=[0.300, 0.291, 0.286])
+             ])
 
         for i in range(len(frame)):
             if self.mode in ['train']:
@@ -299,6 +300,7 @@ class Ssv2(torch.utils.data.Dataset):
                                                brightness_factor=COLOR_JITTER_PARAMS['brightness_factor'],
                                                contrast_factor=COLOR_JITTER_PARAMS['contrast_factor'],
                                                saturation_factor=COLOR_JITTER_PARAMS['saturation_factor'])
+            frame[i] = imaugs.grayscale(frame[i])
             frame[i] = TENSOR_TRANSFORMS(frame[i])
 
         return frame

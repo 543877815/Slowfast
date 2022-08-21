@@ -49,8 +49,8 @@ def load_engine(trt_runtime, plan_path):
 
 
 if __name__ == "__main__":
-    engine = build_engine('../onnxes/slowfast_rgb1.onnx')
-    save_engine(engine, '../engines/slowfast_rgb1.plan')
+    engine = build_engine('../onnxes/slowfast_grayscale.onnx')
+    save_engine(engine, '../engines/slowfast_grayscale.plan')
     print('finish 1')
 
     engine1 = build_engine1('../onnxes/mobileNetv2.onnx')
