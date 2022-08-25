@@ -6,3 +6,4 @@ engines/*
 *.pyc
 mytools/checkpoints/*
 mytools/debug/*
+.run/*

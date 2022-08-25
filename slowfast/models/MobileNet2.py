@@ -65,11 +65,11 @@ class InvertedResidual(nn.Module):
 
 
 class MobileNetV2(nn.Module):
-    def __init__(self, n_class=2, input_size=256, width_mult=1.):
+    def __init__(self, n_class=3, input_size=256, width_mult=1.):
         super(MobileNetV2, self).__init__()
         block = InvertedResidual
         input_channel = 32
-        last_channel = 1280
+        last_channel = 1728
         interverted_residual_setting = [
             # t, c, n, s
             [1, 16, 1, 1],
@@ -77,8 +77,8 @@ class MobileNetV2(nn.Module):
             [6, 32, 3, 2],
             [6, 64, 4, 2],
             [6, 96, 3, 1],
-            [6, 160, 3, 2],
-            [6, 320, 1, 1],
+            # [6, 160, 3, 2],
+            # [6, 320, 1, 1],
         ]
 
         # building first layer

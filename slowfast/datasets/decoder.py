@@ -411,9 +411,9 @@ def pyav_decode(
     # Try to fetch the decoding information from the video head. Some of the
     # videos does not support fetching the decoding information, for that case
     # it will get None duration.
-    fps = float(container.streams.video[0].average_rate)
-    frames_length = container.streams.video[0].frames
-    duration = container.streams.video[0].duration
+    fps = float(container.streams.cap[0].average_rate)
+    frames_length = container.streams.cap[0].frames
+    duration = container.streams.cap[0].duration
 
     if duration is None:
         # If failed to fetch the decoding information, decode the entire video.
@@ -438,12 +438,12 @@ def pyav_decode(
 
     frames = None
     # If video stream was found, fetch video frames from the video.
-    if container.streams.video:
+    if container.streams.cap:
         video_frames, max_pts = pyav_decode_stream(
             container,
             video_start_pts,
             video_end_pts,
-            container.streams.video[0],
+            container.streams.cap[0],
             {"video": 0},
         )
         container.close()

@@ -5,11 +5,12 @@ setup(
     version="1.0",
     description="update greyscale support",
     packages=find_packages(),
-     install_requires=[
+    install_requires=[
         "opencv-python",
         "numpy",
-        "torch",
-        "torchvision",
+        "torch==1.8.0+cu111",
+        "torchvision==0.9.0+cu111",
+        "torchaudio==0.8.0"
         "matplotlib",
         "tqdm",
         "pillow",
@@ -20,6 +21,10 @@ setup(
         "psutil",
         "sklearn",
         "augly",
+        "python-magic",
+        "python-magic-bin",
+        "fvcore",
+        "pytorchvideo"
     ],
     author="lab"
 )

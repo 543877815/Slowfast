@@ -233,25 +233,6 @@ def video_aug(frame):
 
     return frame
 
-# 根据图片返回序列
-def get_images(image_dir):
-    imgs = []
-    WIDTH, HEIGHT = 256, 256
-    transform = transforms.Compose([
-        transforms.transforms.Resize([WIDTH, HEIGHT]),
-        transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.615, 0.613, 0.640],
-        #                      std=[0.265, 0.264, 0.253])
-        transforms.Normalize(mean=[0.504, 0.511, 0.486],
-                             std=[0.300, 0.291, 0.286]),
-    ])
-    for name in os.listdir(image_dir):
-        image_path = os.path.join(image_dir, name)
-        img = Image.open(image_path)
-        img = transform(img)
-        imgs.append(img)
-    return imgs
-
 # 根据帧序列返回16和64张图像帧
 def get_frames(cfg, path_to_videos):
     if isinstance(path_to_videos[0], str):
@@ -269,7 +250,7 @@ def get_frames(cfg, path_to_videos):
     NUM_SPATIAL_CROPS = cfg.TEST.NUM_SPATIAL_CROPS  # 1
     RANDOM_FLIP = cfg.DATA.RANDOM_FLIP  # False
     INV_UNIFORM_SAMPLE = cfg.DATA.INV_UNIFORM_SAMPLE  # True
-    spatial_temporal_idx = 0
+    spatial_temporal_idx = 1
     spatial_sample_index = (
             spatial_temporal_idx % NUM_SPATIAL_CROPS
     )
