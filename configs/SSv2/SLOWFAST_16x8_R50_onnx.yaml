@@ -5,7 +5,6 @@ TRAIN:
   EVAL_PERIOD: 5
   CHECKPOINT_PERIOD: 5
   AUTO_RESUME: False
-  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00730.pyth"  # please download from the model zoo. checkpoints/SLOWFAST_16x8_R50.pkl
   CHECKPOINT_TYPE: pytorch
 DATA:
   NUM_FRAMES: 64
@@ -65,7 +64,7 @@ TEST:
   NUM_SPATIAL_CROPS: 1
   CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00395.pyth"
 DATA_LOADER:
-  NUM_WORKERS: 4
+  NUM_WORKERS: 1
   PIN_MEMORY: True
 NUM_GPUS: 1
 NUM_SHARDS: 1

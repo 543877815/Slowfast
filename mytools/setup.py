@@ -21,8 +21,8 @@ setup(
         "psutil",
         "sklearn",
         "augly",
-        "python-magic",
-        "python-magic-bin",
+        # "python-magic",
+        # "python-magic-bin",
         "fvcore",
         "pytorchvideo"
     ],

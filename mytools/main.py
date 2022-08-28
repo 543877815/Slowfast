@@ -22,10 +22,10 @@ def mytest_trt(cfg):
     model = ModelProcess(xname='model',
                          pipe=p2,
                          main_pipe=p4,
-                         slowfast_path="./slowfast_grayscale.plan",
-                         yolov5_path="./yolov5s.pt",
+                         slowfast_path="../engines/slowfast_grayscale.plan",
+                         yolov5_path="../checkpoints/yolov5s.pt",
                          cfg=cfg,
-                         debug=False,
+                         debug=True,
                          show_video=True)
 
     camera.start()

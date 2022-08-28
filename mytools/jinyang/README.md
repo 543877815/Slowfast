@@ -288,3 +288,58 @@ python mytools/jinyang/mytest_engine.py
 ```
 python mytools/setup.py bdist_wheel
 ```
+
+# ffmpeg相关命令
+
+ffmpeg命令
+
+- -i是输入文件名
+
+- -qscale 0-255，越小质量越好
+
+- -r 代表帧率，
+
+mp4是30帧/秒
+
+avi是29.98帧/秒
+
+- -f 代表输出格式
+
+- -ss: **开始时间** (**-ss HH:MM:SS**), **持续秒数** (**-t duration**), **结束时间** (**-to HH:MM:SS**), 和**开始秒数** (**-s duration**)的用法.
+
+- 命名用一个image-%3d.png参数可以自动命名
+
+- -s 指定分辨率
+
+- -vf 设置视频过滤器，-1:300 高度固定300，宽度自适应
+
+  ​	相同效用
+
+  ```
+  ffmpeg -i input.mpg -s 320x240 output.mp4 
+  ffmpeg -i input.mpg -vf scale=320:240 output.mp4
+  ```
+
+- -q:v表示存储jpeg的图像质量，一般2是高质量。
+
+- -thread 使用的线程数
+
+视频裁剪命令
+
+```bash
+ffmpeg -i input.mp4 -ss 00:01:00 -to 00:02:00 -c copy output.mp4
+```
+
+- -c:v 表示视频，-c:v copy表示拷贝原视频，libx264
+- -f：指定使用avfoundation采集数据
+- -vcodec libx264设置编码格式
+
+视频翻转
+
+```c++
+ffmpeg -i 030001.avi -vf "hflip" -c:v libx264 -crf 18 -y output.mp4
+```
+
+-y 覆盖输出文件，不需要提示
+
+-crf 在优先保证画面质量（也不太在乎转码时间）的情况下，使用-crf参数来控制转码是比较适宜的。这个参数的取值范围为0\~51，其中0为无损模式，数值越大，画质越差，生成的文件却越小。从主观上讲，18\~28是一个合理的范围。18被认为是视觉无损的（从技术角度上看当然还是有损的），它的输出视频质量和输入视频相当。

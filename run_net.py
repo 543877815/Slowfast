@@ -14,7 +14,7 @@ from visualization import visualize
 
 def main():
     """
-    Main function to spawn the train and test process.
+    Main function to spawn the train and test  process.
     """
     args = parse_args()
     print("config files: {}".format(args.cfg_files))

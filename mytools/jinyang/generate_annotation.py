@@ -28,7 +28,8 @@ if __name__ == '__main__':
     video_id = 0
 
     for mode in modes:
-        targetdir = f'/data/lifengjun/gesture_dataset/dataset/image/{args.video_type}/{mode}'
+        # targetdir = f'/data/lifengjun/gesture_dataset/dataset/image/{args.video_type}/{mode}'
+        targetdir = '/data/lifengjun/gesture_dataset/dataset/image/img_0827/{}'.format(mode)
         res = []
         jsontext = []
         targetdir_path = os.listdir(targetdir)
