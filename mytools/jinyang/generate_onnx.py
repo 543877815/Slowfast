@@ -14,6 +14,7 @@ from onnxsim import simplify
 
 def generate_onnx(cfg):
     model = build_model(cfg)
+    print(cfg.TEST.CHECKPOINT_FILE_PATH)
     cu.load_test_checkpoint(cfg, model)
     model.eval()
 
@@ -29,7 +30,7 @@ def generate_onnx(cfg):
     output_names = ["output"]
     saved_name = "../onnxes/slowfast_rgb2.onnx"
 
-    torch.onnx.export(model, args=(inputs[0], inputs[1], None), f=saved_name, verbose=True, input_names=input_names, output_names=output_names)
+    torch.onnx.export(model, args=(inputs, None), f=saved_name, verbose=True, input_names=input_names, output_names=output_names)
     print("finish exporting slowfast onnx")
 
     onnx_model = onnx.load(saved_name)
@@ -38,22 +39,22 @@ def generate_onnx(cfg):
     onnx.save(model_simp, simplified_name)
     print('finished exporting simplified onnx')
 
-    def remove_prefix(state_dict, prefix):
-        f = lambda x: x.split(prefix, 1)[-1] if x.startswith(prefix) else x
-        return {f(key): value for key, value in state_dict.items()}
-
-    # load classification model
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    net = mobilenet_v2().to(device)
-    checkpoint = torch.load('../checkpoints/mobileNetv2_model.pth')
-    state_dict = remove_prefix(checkpoint['net'], 'module.')
-    net.load_state_dict(state_dict)
-    inputs = [torch.randn(batch_size, img_channel, img_width, img_height, device="cuda")]
-    input_names = ["x"]
-    output_names = ["output"]
-    saved_name = "../onnxes/mobileNetv2.onnx"
-    torch.onnx.export(net, args=(inputs[0]), f=saved_name, verbose=True, input_names=input_names, output_names=output_names)
-    print("finish exporting mobileNetv2 onnx")
+    # def remove_prefix(state_dict, prefix):
+    #     f = lambda x: x.split(prefix, 1)[-1] if x.startswith(prefix) else x
+    #     return {f(key): value for key, value in state_dict.items()}
+    #
+    # # load classification model
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # net = mobilenet_v2().to(device)
+    # checkpoint = torch.load('../checkpoints/mobileNetv2_model.pth')
+    # state_dict = remove_prefix(checkpoint['net'], 'module.')
+    # net.load_state_dict(state_dict)
+    # inputs = [torch.randn(batch_size, img_channel, img_width, img_height, device="cuda")]
+    # input_names = ["x"]
+    # output_names = ["output"]
+    # saved_name = "../onnxes/mobileNetv2.onnx"
+    # torch.onnx.export(net, args=(inputs[0]), f=saved_name, verbose=True, input_names=input_names, output_names=output_names)
+    # print("finish exporting mobileNetv2 onnx")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 TRAIN:
   ENABLE: False
   DATASET: ssv2
-  BATCH_SIZE: 48   # 8 per gpu for 24G
+  BATCH_SIZE: 8   # 8 per gpu for 24G
   EVAL_PERIOD: 5
   CHECKPOINT_PERIOD: 5
   AUTO_RESUME: False
@@ -62,7 +62,7 @@ TEST:
   BATCH_SIZE: 4
   NUM_ENSEMBLE_VIEWS: 1
   NUM_SPATIAL_CROPS: 1
-  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00395.pyth"
+  CHECKPOINT_FILE_PATH: "/data/lifengjun/SlowFast/checkpoints/checkpoint_epoch_00110.pyth"
 DATA_LOADER:
   NUM_WORKERS: 1
   PIN_MEMORY: True

@@ -1,10 +1,10 @@
 import cv2 as cv
 from slowfast.utils.parser import load_config, parse_args
 import time
-from multiprocessing import Process, Pipe, Lock
+from multiprocessing import Process, Pipe
 import numpy as np
-from utils import get_frames, do_inference, load_engine, allocate_buffers
-from yolov5.utils.torch_utils import select_device, smart_inference_mode
+from jinyang.utils import get_frames, do_inference, load_engine, allocate_buffers
+from yolov5.utils.torch_utils import select_device
 from yolov5.utils.general import (check_img_size, check_imshow, Profile, increment_path, non_max_suppression, scale_coords)
 from yolov5.models.common import DetectMultiBackend
 from yolov5.utils.plots import Annotator, colors, save_one_box
@@ -26,7 +26,7 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 class CameraProcess(Process):
-    def __init__(self, xname, pipe, save_image=False,  source=0):
+    def __init__(self, xname, pipe, save_image=False, source=0):
         super(CameraProcess, self).__init__()
         self.xname = xname
         self.pipe = pipe
@@ -48,12 +48,10 @@ class CameraProcess(Process):
         # print(self.cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 1)) #设置曝光为手动模式
         # self.cap.set(cv.CAP_PROP_FRAME_WIDTH, width)  # 设置宽度
         # self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)  # 设置长度
-
         id = 0
         while True:
             # 开始用摄像头读数据，返回hx为true则表示读成功，frame为读的图像
             hx, frame = self.cap.read()
-            frame = cv.cvtColor(frame, cv.IMREAD_COLOR)
 
             # 如果hx为Flase表示开启摄像头失败，那么就输出"read vido error"并退出程序
             if hx is False:
@@ -62,6 +60,7 @@ class CameraProcess(Process):
                 # 退出程序
                 exit(0)
 
+            frame = cv.cvtColor(frame, cv.IMREAD_COLOR)
             # 显示摄像头图像，其中的video为窗口名称，frame为图像
 
             # frame = cv.resize(frame, (self.width, self.height), cv.INTER_NEAREST)
@@ -85,8 +84,8 @@ class CameraProcess(Process):
 
 class ModelProcess(Process):
     def __init__(self, xname, pipe, main_pipe,
-                 slowfast_path="../engines/slowfast_grayscale.plan",
-                 yolov5_path="../checkpoints/yolov5s.pt",
+                 slowfast_path="../engines/slowfast_rgb.plan",
+                 yolov5_path="../checkpoints/yolov5m_8.pt",
                  cfg=None, debug=True, show_video=True, verbose=False):
         super().__init__()
         self.xname = xname
@@ -140,7 +139,7 @@ class ModelProcess(Process):
 
         # yolov5
         device = select_device("")
-        data = ROOT / 'config/data.yaml'
+        data = 'config/data.yaml'
         yolov5_model = DetectMultiBackend(self.yolov5_path, device=device, dnn=False, data=data, fp16=False)
         stride, names, pt = yolov5_model.stride, yolov5_model.names, yolov5_model.pt
         imgsz = check_img_size((640, 640), s=stride)  # check image size
@@ -163,8 +162,9 @@ class ModelProcess(Process):
         self.timeframes = []
         self.frames = []
         self.probabilities = []
-        while True:
+        self.pre_preds = []
 
+        while True:
             frame, timeframe = self.pipe.recv()
             annotator = Annotator(frame, line_width=self.line_thickness, example=str(names))
 
@@ -190,6 +190,9 @@ class ModelProcess(Process):
                     det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
                     bbx = det
                 for *xyxy, conf, cls in reversed(det):
+                    if conf < 0.7:
+                        continue
+
                     if self.save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if self.hide_labels else (names[c] if self.hide_conf else f'{names[c]} {conf:.2f}')
@@ -205,13 +208,18 @@ class ModelProcess(Process):
             self.frames.append(frame)
             self.timeframes.append(timeframe)
             self.isStart.append(len(bbx))
-            self.probabilities.append(bbx[0][4].item() if len(bbx) else 0)
-            if len(self.frames) >= maxsize and self.isStart[0] and self.probabilities[0] > 0.5:
+            max_idx = torch.argmax(bbx[:, 4], dim=0).item() if len(bbx) else 0
+            self.probabilities.append(bbx[max_idx][4].item() if len(bbx) else 0)  # yolov5 概率
+            self.pre_preds.append(int(names[int(bbx[max_idx][5])]) if len(bbx) else 0)  # yolov5 預測
+            if len(self.frames) >= maxsize and self.isStart[0] and self.probabilities[0] > 0.7 and self.pre_preds[0] <= 4:
+                pred_of_yolov5 = self.pre_preds[:64]
+                prob_of_yolov5 = self.probabilities[:64]
                 inputs = get_frames(self.cfg, self.frames)
                 h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream = allocate_buffers(slowfast_model, batch_size, trt.float32)
                 out = do_inference(slowfast_model, inputs, h_input1, d_input1, h_input2, d_input2, h_output, d_output, stream)
                 prob = self.softmax(out)
                 pred = np.argmax(out)
+
                 for i in range(maxsize):
                     self.isStart[i] = 0
                     self.probabilities[i] = 0
@@ -222,13 +230,20 @@ class ModelProcess(Process):
                     a = torch.tensor(inputs[1].clone().detach()).squeeze(0).transpose(0, 1)
                     torchvision.utils.save_image(a, f'./debug/{curr_time}-{pred}.png')
 
-                self.main_pipe.send([pred, prob])
+                self.main_pipe.send({
+                    "pred_of_yolov5": pred_of_yolov5,
+                    "prob_of_yolov5": prob_of_yolov5,
+                    "pred_of_slowfast": pred,
+                    "prob_of_slowfast": prob
+                })
 
             while len(self.timeframes) >= maxsize:
                 self.frames.pop(0)
                 self.timeframes.pop(0)
                 self.isStart.pop(0)
                 self.probabilities.pop(0)
+                self.pre_preds.pop(0)
+
     @staticmethod
     def softmax(logits):
         e_x = np.exp(logits)
@@ -246,15 +261,18 @@ def mytest_trt(cfg):
 
     p1, p2 = Pipe(duplex=True)
     p3, p4 = Pipe(duplex=False)
-    mutex = Lock()
     camera = CameraProcess('camera', p1)
-    model = ModelProcess('model', p2, p4, cfg=cfg, debug=True, mutex=mutex)
+    model = ModelProcess('model', p2, p4, cfg=cfg, debug=False)
 
     camera.start()
     model.start()
 
     while True:
-        print(np.argmax(p3.recv()))
+        data = p3.recv()
+        print(data['pred_of_yolov5'])
+        print(data['prob_of_yolov5'])
+        print(data['pred_of_slowfast'])
+        print(data['prob_of_slowfast'])
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ import csv
 import os
 import json
 import argparse
+from tqdm import tqdm
 
 if __name__ == '__main__':
     template = {
@@ -23,13 +24,14 @@ if __name__ == '__main__':
     parser.add_argument("--video_type", default="RGB")
     args = parser.parse_args()
 
-    modes = ['train', 'val', 'test']
+    # modes = ['train', 'val', 'test']
+    modes = ['train', 'val']
     label = ['original_vido_id video_id frame_id path labels']
     video_id = 0
 
     for mode in modes:
         # targetdir = f'/data/lifengjun/gesture_dataset/dataset/image/{args.video_type}/{mode}'
-        targetdir = '/data/lifengjun/gesture_dataset/dataset/image/img_0827/{}'.format(mode)
+        targetdir = '/data/lifengjun/data/gesture_dataset/images/{}'.format(mode)
         res = []
         jsontext = []
         targetdir_path = os.listdir(targetdir)
@@ -37,7 +39,7 @@ if __name__ == '__main__':
         for labels in targetdirs:
             video_path = os.path.join(targetdir, labels)
             videos = sorted(os.listdir(video_path))
-            for original_vido_id in videos:
+            for original_vido_id in tqdm(videos):
                 images_path = os.path.join(video_path, original_vido_id)
                 images = sorted(os.listdir(images_path))
                 line = {"id": f"{original_vido_id}", "template": f"{template[str(labels)]}"} if mode != 'test' else {"id": f"{video_id}"}

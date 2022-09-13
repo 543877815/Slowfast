@@ -95,7 +95,7 @@ def generate_cm(cfg):
 
         # Perform the forward pass.
         with torch.no_grad():
-            preds = model(inputs[0], inputs[1])
+            preds = model(inputs)
         classes = torch.argmax(preds, 1)
 
         if cfg.NUM_GPUS:
@@ -138,4 +138,5 @@ if __name__ == "__main__":
     print("config files: {}".format(args.cfg_files))
     for path_to_config in args.cfg_files:
         cfg = load_config(args, path_to_config)
+
     launch_job(cfg=cfg, init_method=args.init_method, func=generate_cm)

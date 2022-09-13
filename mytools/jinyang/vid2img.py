@@ -10,7 +10,7 @@ import subprocess
 from multiprocessing import Pool
 from tqdm import tqdm
 
-n_thread = 10
+n_thread = 100
 
 
 def vid2jpg(file_name, class_path, dst_class_path):

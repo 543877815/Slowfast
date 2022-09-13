@@ -24,9 +24,9 @@ def mytest_onnx(cfg):
             slowfast/config/defaults.py
     """
 
-    ort_session = ort.InferenceSession("../onnxes/slowfast_rgb1.onnx", providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+    ort_session = ort.InferenceSession("../onnxes/slowfast_rgb2.onnx", providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 
-    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\4"
+    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\3"
     frames = os.listdir(frame_path)
     test_times = 1
     starttime = time.time()

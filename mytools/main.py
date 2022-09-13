@@ -22,18 +22,21 @@ def mytest_trt(cfg):
     model = ModelProcess(xname='model',
                          pipe=p2,
                          main_pipe=p4,
-                         slowfast_path="../engines/slowfast_grayscale.plan",
-                         yolov5_path="../checkpoints/yolov5s.pt",
+                         slowfast_path="../engines/slowfast_rgb.plan",
+                         yolov5_path="../checkpoints/yolov5m_4.pt",
                          cfg=cfg,
-                         debug=True,
+                         debug=False,
                          show_video=True)
 
     camera.start()
     model.start()
 
     while True:
-        result = p3.recv()
-        print(result)
+        data = p3.recv()
+        print(data['pred_of_yolov5'])
+        print(data['prob_of_yolov5'])
+        print(data['pred_of_slowfast'])
+        print(data['prob_of_slowfast'])
 
 
 if __name__ == "__main__":

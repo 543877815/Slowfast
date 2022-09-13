@@ -228,7 +228,7 @@ def video_aug(frame):
          #                      std=[0.300, 0.291, 0.286]),
          ])
     for i in range(len(frame)):
-        frame[i] = imaugs.grayscale(frame[i])
+        # frame[i] = imaugs.grayscale(frame[i])
         frame[i] = TENSOR_TRANSFORMS(frame[i])
 
     return frame

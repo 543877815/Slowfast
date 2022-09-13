@@ -280,7 +280,7 @@ class Ssv2(torch.utils.data.Dataset):
         }
 
         degradation_type = random.randint(0, 3)
-
+        use_grayscale = random.randint(0, 1)
         TENSOR_TRANSFORMS = transforms.Compose(
             [transforms.ToTensor(),
              # transforms.Normalize(mean=[0.504, 0.511, 0.486], std=[0.300, 0.291, 0.286])
@@ -296,11 +296,12 @@ class Ssv2(torch.utils.data.Dataset):
                 # frame[i] = imaugs.random_noise(frame[i], var=DEGRADATION_PARAMS['noise_variance'])
                 # elif degradation_type == 3:
                 #     frame[i] = imaugs.sharpen(frame[i], factor=DEGRADATION_PARAMS["sharpen_factor"])
+                if use_grayscale == 1:
+                    frame[i] = imaugs.grayscale(frame[i])
                 frame[i] = imaugs.color_jitter(frame[i],
                                                brightness_factor=COLOR_JITTER_PARAMS['brightness_factor'],
                                                contrast_factor=COLOR_JITTER_PARAMS['contrast_factor'],
                                                saturation_factor=COLOR_JITTER_PARAMS['saturation_factor'])
-            frame[i] = imaugs.grayscale(frame[i])
             frame[i] = TENSOR_TRANSFORMS(frame[i])
 
         return frame
