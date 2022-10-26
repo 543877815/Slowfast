@@ -261,14 +261,14 @@ python mytools/jinyang/mytest_onnx.py
 
 # tensorrt
 
-安装
+**安装**
 
-- windows需要到官网下载cuDNN对应版本的tensorrt，然后把`bin`，`lib`，`include`目录合并拷贝到`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4`中
+- windows需要到官网下载cuDNN对应版本的tensorrt，然后把`bin`，`lib`，`include`目录合并拷贝到`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4`中，需要把安装包下的对应python版本的tensorrt的.whl和相关包进行安装，对于tensorrt8.4建议安装pytorch1.11及以上版本 
 
 - linux上通过以下命令安装
 
 ```
-pip install nvidia-tensorrt
+pip install nvidia-tensorrt -U --index-url https://pypi.ngc.nvidia.com```
 ```
 
 ## 生成tensorrt
@@ -279,11 +279,13 @@ python mytools/jinyang/generate_engine.py
 
 ## 使用tensorrt
 
+有个坑需要先`import tensorrt`，然后再`import torch`，否则存在问题
+
 ```
 python mytools/jinyang/mytest_engine.py
 ```
 
-## 打包成.whl
+# 打包成.whl
 
 ```
 python mytools/setup.py bdist_wheel
@@ -315,7 +317,7 @@ avi是29.98帧/秒
 
   ​	相同效用
 
-  ```
+```
   ffmpeg -i input.mpg -s 320x240 output.mp4 
   ffmpeg -i input.mpg -vf scale=320:240 output.mp4
   ```
@@ -326,9 +328,9 @@ avi是29.98帧/秒
 
 视频裁剪命令
 
-```bash
+​```bash
 ffmpeg -i input.mp4 -ss 00:01:00 -to 00:02:00 -c copy output.mp4
-```
+  ```
 
 - -c:v 表示视频，-c:v copy表示拷贝原视频，libx264
 - -f：指定使用avfoundation采集数据
@@ -336,7 +338,7 @@ ffmpeg -i input.mp4 -ss 00:01:00 -to 00:02:00 -c copy output.mp4
 
 视频翻转
 
-```c++
+```bash
 ffmpeg -i 030001.avi -vf "hflip" -c:v libx264 -crf 18 -y output.mp4
 ```
 

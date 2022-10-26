@@ -20,25 +20,24 @@ def generate_onnx(cfg):
 
     batch_size = 1
     img_channel = 3
-    fast_frame = 16
-    slow_frame = 64
+    fast_frame = 8
+    slow_frame = 32
     img_width = 256
     img_height = 256
     inputs = [torch.randn(batch_size, img_channel, fast_frame, img_width, img_height, device="cuda"),
               torch.randn(batch_size, img_channel, slow_frame, img_width, img_height, device="cuda")]
     input_names = ["x0", "x1", "bboxes"]
     output_names = ["output"]
-    saved_name = "../onnxes/slowfast_rgb2.onnx"
+    saved_name = "../onnxes/slowfast_1-2-3-4-11-12-new.onnx"
 
     torch.onnx.export(model, args=(inputs, None), f=saved_name, verbose=True, input_names=input_names, output_names=output_names)
     print("finish exporting slowfast onnx")
 
-    onnx_model = onnx.load(saved_name)
-    simplified_name = "../onnxes/slowfast_rgb_simp.onnx"
-    model_simp, check = simplify(onnx_model)
-    onnx.save(model_simp, simplified_name)
-    print('finished exporting simplified onnx')
-
+    # onnx_model = onnx.load(saved_name)
+    # simplified_name = "../onnxes/slowfast_rgb_simp.onnx"
+    # model_simp, check = simplify(onnx_model)
+    # onnx.save(model_simp, simplified_name)
+    # print('finished exporting simplified onnx')
     # def remove_prefix(state_dict, prefix):
     #     f = lambda x: x.split(prefix, 1)[-1] if x.startswith(prefix) else x
     #     return {f(key): value for key, value in state_dict.items()}

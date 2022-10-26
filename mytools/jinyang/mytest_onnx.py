@@ -24,9 +24,9 @@ def mytest_onnx(cfg):
             slowfast/config/defaults.py
     """
 
-    ort_session = ort.InferenceSession("../onnxes/slowfast_rgb2.onnx", providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+    ort_session = ort.InferenceSession("../onnxes/slowfast_1-2-3-4-11-12-new.onnx", providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 
-    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\3"
+    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\11"
     frames = os.listdir(frame_path)
     test_times = 1
     starttime = time.time()
@@ -50,7 +50,7 @@ def mytest_onnx(cfg):
         a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
         dataframe = time.time()
         classes = np.argmax(outputs[0], 1)  # classes.shape = torch.Size([8])
-        torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes.item()}.png')
+        #torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes.item()}.png')
         print("predicts: {}".format(classes))
 
     endtime = time.time()

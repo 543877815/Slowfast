@@ -168,10 +168,10 @@ if __name__ == "__main__":
     trt_runtime = trt.Runtime(TRT_LOGGER)
 
     ## for slowfast model
-    slowfast_path = "../engines/slowfast_grayscale.plan"
+    slowfast_path = "../engines/slowfast_1-2-3-4-11-12-last.plan"
     slowfast_model = load_engine(trt_runtime, slowfast_path)
     batch_size = 1
-    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\images\1"
+    frame_path = r"D:\jupyter\SlowFast\test_imgs\image\11"
     os.makedirs('./debug', exist_ok=True)
     frames = os.listdir(frame_path)
     times = 1
@@ -189,7 +189,7 @@ if __name__ == "__main__":
             a = torch.tensor(inputs[1]).squeeze(0).transpose(0, 1)
             dataframe = time.time()
             classes = np.argmax(out)  # classes.shape = torch.Size([8])
-            torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
+            # torchvision.utils.save_image(a, f'./debug/{dataframe}-{classes}.png')
             print(classes)
 
     end_time = time.time()

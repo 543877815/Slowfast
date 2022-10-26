@@ -6,7 +6,7 @@ TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
 trt_runtime = trt.Runtime(TRT_LOGGER)
 
 
-def build_engine(onnx_path, shape1=[1, 3, 16, 256, 256], shape2=[1, 3, 64, 256, 256]):
+def build_engine(onnx_path, shape1=[1, 3, 8, 256, 256], shape2=[1, 3, 32, 256, 256]):
     """
     This is the function to create the TensorRT engine
     Args:
@@ -49,8 +49,8 @@ def load_engine(trt_runtime, plan_path):
 
 
 if __name__ == "__main__":
-    engine = build_engine('../onnxes/slowfast_rgb2.onnx')
-    save_engine(engine, '../engines/slowfast_rgb.plan')
+    engine = build_engine('../onnxes/slowfast_1-2-3-4-11-12-new.onnx')
+    save_engine(engine, '../engines/slowfast_1-2-3-4-11-12-new.plan')
     print('finish 1')
 
     # engine1 = build_engine1('../onnxes/mobileNetv2.onnx')
